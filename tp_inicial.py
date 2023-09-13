@@ -1,9 +1,8 @@
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter import ttk
+import tkinter as tk
 import sqlite3
-### prueba ####
-
 
 mi_id = 0
 main = Tk()
@@ -13,24 +12,20 @@ titulo = Label(main, text="System UTNBA", width=80, foreground='#F0F7DA', bg='#1
 fuentetit = 'Arial 11'
 fuentecue = 'Arial 10'
 
-
-# CONEXION BASE DE DATOS
 db = sqlite3.connect("baseTPinicial.db")
 cursor = db.cursor()
 sql = "CREATE TABLE IF NOT EXISTS personas(id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR(50) NOT NULL, apellido VARCHAR(50) NOT NULL, documento INT NOT NULL, correo VARCHAR(50) NOT NULL, filiacion VARCHAR(50))"
 cursor.execute(sql)
 db.commit()
 
-
 def regpersona():
     global mi_id
     mi_id += 1
     sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
-    datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),var_filiacion.get())
+    datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
     cursor.execute(sql, datos)
     db.commit()
-    tree.insert("", "end", text=str(mi_id),values=(var_nombre.get(), var_apellido.get(),var_dni.get(),var_correo.get(),var_filiacion.get()))
-
+    tree.insert("", "end", text=str(mi_id),values=(var_nombre.get(), var_apellido.get(),var_dni.get(),var_correo.get(),combo.get()))
 
 def conspersona():
     if var_dnic.get() != "":
@@ -72,7 +67,6 @@ var_nombre = StringVar()
 var_apellido = StringVar()
 var_dni = StringVar()
 var_correo = StringVar()
-var_filiacion = StringVar()
 var_dnic = StringVar()
 # ---------- ALTA DE REGISTRO ---------------------------
 registrasetitulo = Label(main, text="Registrarse", bg='#ced4db', font=fuentetit).grid(pady=10,row=1, column=0, columnspan=2)
@@ -89,9 +83,15 @@ correo = Label(main, text="Correo", bg='#F0F7DA', font=fuentecue).grid(column=0,
 correoentry = Entry(main,textvariable=var_correo).grid(column=1, row=5)
 
 filiacion = Label(main, text="Filiacion",bg='#F0F7DA', font=fuentecue).grid(column=0, row=6)
-filiacionentry = Entry(main,textvariable=var_filiacion).grid(column=1, row=6)
+#filiacionentry = Entry(main,textvariable=var_filiacion).grid(column=1, row=6)
 
 boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona).grid(pady=10, row=7, column=0, columnspan=2)
+
+combo = ttk.Combobox(
+    state="readonly",
+    values=["Docente", "No Docente", "Alumno", "Monotributista"]
+)
+combo.grid(column=1,row=6)
 
 """
 ------------ CONSULTA Y EDITAR -------------------
@@ -123,12 +123,13 @@ boton_eli = Button(main, text="Eliminar", bg='#ced4db', command=eliminarpersona)
 # MUESTRA DE BASE
 
 tree = ttk.Treeview(main)
-tree["columns"] = ("col1", "col2", "col3", "col4")
+tree["columns"] = ("col1", "col2", "col3", "col4", "col5")
 tree.column("#0", minwidth=40, anchor="n")  # no tiene encabezado porque ya existe
 tree.column("col1", minwidth=80, anchor="n")
 tree.column("col2", minwidth=80, anchor="n")
 tree.column("col3", minwidth=60, anchor="n")
 tree.column("col4", minwidth=60, anchor="n")
+tree.column("col5", minwidth=60, anchor="n")
 
 # Encabezado de las columnas del Treeview
 tree.heading("#0", text="ID", anchor="n")
@@ -136,6 +137,7 @@ tree.heading("col1", text="Nombre", anchor="n")
 tree.heading("col2", text="Apellido", anchor="n")
 tree.heading("col3", text="Dni", anchor="n")
 tree.heading("col4", text="Correo", anchor="n")
+tree.heading("col5", text="Filiacion", anchor="n")
 
 tree.grid(row=9, columnspan=5, pady=5)
 
