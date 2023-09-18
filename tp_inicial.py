@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter import ttk
-import tkinter as tk
 import sqlite3
 import re
 
@@ -12,6 +11,7 @@ main.configure(bg='#F0F7DA')
 titulo = Label(main, text="System UTNBA", width=80, foreground='#F0F7DA', bg='#1F192F', font='Arial 15 bold').grid(pady=10, row=0, columnspan=6)
 fuentetit = 'Arial 11'
 fuentecue = 'Arial 10'
+patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
 
 db = sqlite3.connect("baseTPinicial.db")
 cursor = db.cursor()
@@ -21,13 +21,21 @@ db.commit()
 
 def regpersona():
     patron = "^[A-Za-z]+(?i:[ _-][A-Za-z]+)*$"
-    patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
+    resultadodni = busquedadni(var_dni.get())
     if (re.match(patron, var_nombre.get()) and re.match(patrondni, var_dni.get()) and re.match(patron, var_apellido.get())):
-        sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
-        datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
-        cursor.execute(sql, datos)
-        db.commit()
-        mostrardb()
+        if (resultadodni ==[]):
+            sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
+            datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
+            cursor.execute(sql, datos)
+            db.commit()
+            mostrardb()
+            var_nombre.set('')
+            var_apellido.set('')
+            var_dni.set('')
+            var_correo.set('')
+            combo.set('')
+        else:
+            showwarning("Error", "El dni ingresado ya existe en la base, ingrese otro")
     else:
         showerror("Error", "No es posible guardar")
    
@@ -38,7 +46,6 @@ def busquedadni(var):
     return resultado
 
 def conspersona():
-    patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
     if (re.match(patrondni, var_dnic.get())):
         resultado = busquedadni(var_dnic.get())
         if resultado !=[] :
@@ -50,17 +57,49 @@ def conspersona():
 
 
 def modpersona():
-    if var_dnic.get() != "":
-        sql = "UPDATE producto SET titulo = %s WHERE id = %s"
-        datos = ("producto1Modificado", 2)
-        micursor.execute(sql, datos)
-        mibase.commit()
+    global botonmod
+    if (re.match(patrondni, var_dnic.get())):
+        resultado = busquedadni(var_dnic.get())
+        if resultado !=[]:
+            sql = "SELECT * FROM personas WHERE documento = " + var_dnic.get()
+            cursor.execute(sql)
+            persona = cursor.fetchone()
+            var_nombre.set(persona[1])
+            var_apellido.set(persona[2])
+            var_dni.set(persona[3])
+            var_correo.set(persona[4])
+            combo.set(persona[5])
+            botonmod = Button(main, text="Aceptar", bg='#65B8A6', command=modificarendb)
+            botonmod.grid(row=7, column=1, columnspan=2)
+        else:
+            showerror("Error", "No existe en la base de datos")
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
+def modificarendb():
+    if askyesno("Modificar persona", "¿Esta seguro que desea modificar esta persona?"):
+        sql = "UPDATE personas SET nombre=?, apellido=?, documento=?, correo=?, filiacion=? WHERE documento = " + var_dnic.get()
+        datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
+        cursor.execute(sql, datos)
+        db.commit()
+        mostrardb()
+        var_nombre.set('')
+        var_apellido.set('')
+        var_dni.set('')
+        var_correo.set('')
+        combo.set('')
+    else:
+        showinfo("Salir", "Esta a punto de salir")
+    botonmod.destroy()
+    var_nombre.set('')
+    var_apellido.set('')
+    var_dni.set('')
+    var_correo.set('')
+    combo.set('')
+    
+
 
 def eliminarpersona():
-    patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
     if (re.match(patrondni, var_dnic.get())):
         resultado = busquedadni(var_dnic.get())
         if resultado !=[]:
@@ -74,7 +113,6 @@ def eliminarpersona():
                 showinfo("Salir", "Esta a punto de salir")
         else:
             showerror("Error", "No existe en la base de datos")
-        
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
@@ -110,24 +148,6 @@ combo = ttk.Combobox(
 )
 combo.grid(column=2,row=6)
 
-"""
------------- CONSULTA Y EDITAR -------------------
-
-nombrec = Label(main, text="Nombre", bg='#F0F7DA', font=fuentecue).grid(column=3, row=2)
-nombrecEntry = Entry(main, textvariable=var_nombre).grid(column=4, row=2)
-
-apellidoc = Label(main, text="Apellido", bg='#F0F7DA', font=fuentecue).grid(column=3, row=3)
-apellidocEntry = Entry(main).grid(column=4, row=3)
-
-dnic = Label(main, text="Dni", bg='#F0F7DA', font=fuentecue).grid(column=3, row=4)
-dnicentry = Entry(main).grid(column=4, row=4)
-
-correoc = Label(main, text="Correo", bg='#F0F7DA', font=fuentecue).grid(column=3, row=5)
-correocentry = Entry(main).grid(column=4, row=5)
-
-filiacionc = Label(main, text="Filiacion", bg='#F0F7DA', font=fuentecue).grid(column=3, row=6)
-filiacioncentry = Entry(main).grid(column=4, row=6)
-"""
 # INPUT MODIFICACION/CONSULTA
 consultatitulo = Label(main, text="Consulta", bg='#ced4db', font=fuentetit).grid(pady=10, row=1, column=3, columnspan=2)
 dniconsulta = Label(main, text="Ingrese Documento", bg='#F0F7DA', font=fuentecue).grid(column=3, row=2)
@@ -136,7 +156,6 @@ dniconsultaentry = Entry(main, textvariable=var_dnic).grid(column=4, row=2 )
 boton_con = Button(main, text="Consultar", bg='#2d6073', command=conspersona).grid(column=3, row=4, columnspan=2)
 boton_mod = Button(main, text="Modificar", bg='#65B8A6', command=modpersona).grid(row=3, column=3)
 boton_eli = Button(main, text="Eliminar", bg='#ced4db', command=eliminarpersona).grid(row=3, column=4)
-
 # MUESTRA DE BASE
 
 tree = ttk.Treeview(main, show="headings")
