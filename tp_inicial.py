@@ -20,11 +20,9 @@ cursor.execute(sql)
 db.commit()
 
 def regpersona():
-    global mi_id
     patron = "^[A-Za-z]+(?i:[ _-][A-Za-z]+)*$"
     patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
     if (re.match(patron, var_nombre.get()) and re.match(patrondni, var_dni.get()) and re.match(patron, var_apellido.get())):
-        mi_id += 1
         sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
         datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
         cursor.execute(sql, datos)
@@ -33,13 +31,16 @@ def regpersona():
     else:
         showerror("Error", "No es posible guardar")
    
+def busquedadni(var):
+    sql = "SELECT * FROM personas WHERE documento = " + var
+    cursor.execute(sql)
+    resultado = cursor.fetchall()
+    return resultado
 
 def conspersona():
     patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
     if (re.match(patrondni, var_dnic.get())):
-        sql = "SELECT * FROM personas WHERE documento = " + var_dnic.get()
-        cursor.execute(sql)
-        resultado = cursor.fetchall()
+        resultado = busquedadni(var_dnic.get())
         if resultado !=[] :
             showinfo("El resultado es:", resultado)
         else:
@@ -59,14 +60,21 @@ def modpersona():
 
 
 def eliminarpersona():
-    if var_dnic.get() != "":
-        if askyesno("Eliminar persona", "Esta seguro que desea eliminar esta persona"):
-            sql = "DELETE FROM personas WHERE documento =" + var_dnic.get()
-            cursor.execute(sql)
-            mostrardb()
-            showinfo("Eliminar", "Usuario eliminado")
+    patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
+    if (re.match(patrondni, var_dnic.get())):
+        resultado = busquedadni(var_dnic.get())
+        if resultado !=[]:
+            if askyesno("Eliminar persona", "Esta seguro que desea eliminar esta persona"):
+                sql = "DELETE FROM personas WHERE documento = " + var_dnic.get()
+                cursor.execute(sql)
+                db.commit()
+                mostrardb()
+                showinfo("Eliminar", "Usuario eliminado")
+            else:
+                showinfo("Salir", "Esta a punto de salir")
         else:
-            showinfo("Salir", "Esta a punto de salir")
+            showerror("Error", "No existe en la base de datos")
+        
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
@@ -152,6 +160,9 @@ def mostrardb():
     sql = "SELECT * FROM personas"
     cursor.execute(sql)
     resultado = cursor.fetchall()
+    registros= tree.get_children()
+    for x in registros:
+        tree.delete(x)
     for i in resultado:
         tree.insert("", 'end', values=i)
 
