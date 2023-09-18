@@ -9,8 +9,8 @@ main = Tk()
 main.title("System UTNBA")
 main.configure(bg='#F0F7DA')
 titulo = Label(main, text="System UTNBA", width=80, foreground='#F0F7DA', bg='#1F192F', font='Arial 15 bold').grid(pady=10, row=0, columnspan=6)
-fuentetit = 'Arial 11'
-fuentecue = 'Arial 10'
+fuentetit = 'Mooli 12'
+fuentecue = 'Roboto-Medium 10'
 patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
 
 db = sqlite3.connect("baseTPinicial.db")
@@ -21,19 +21,16 @@ db.commit()
 
 def regpersona():
     patron = "^[A-Za-z]+(?i:[ _-][A-Za-z]+)*$"
+    patroncorreo = "^[A-Za-z]+@"
     resultadodni = busquedadni(var_dni.get())
-    if (re.match(patron, var_nombre.get()) and re.match(patrondni, var_dni.get()) and re.match(patron, var_apellido.get())):
+    if (re.match(patron, var_nombre.get()) and re.match(patrondni, var_dni.get()) and re.match(patron, var_apellido.get()) and re.match(patroncorreo, var_correo.get())):
         if (resultadodni ==[]):
             sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
             datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
             cursor.execute(sql, datos)
             db.commit()
             mostrardb()
-            var_nombre.set('')
-            var_apellido.set('')
-            var_dni.set('')
-            var_correo.set('')
-            combo.set('')
+            limpiar()
         else:
             showwarning("Error", "El dni ingresado ya existe en la base, ingrese otro")
     else:
@@ -50,6 +47,7 @@ def conspersona():
         resultado = busquedadni(var_dnic.get())
         if resultado !=[] :
             showinfo("El resultado es:", resultado)
+            var_dnic.set('')
         else:
             showerror("Error", "No existe en la base de datos")
     else:
@@ -71,6 +69,7 @@ def modpersona():
             combo.set(persona[5])
             botonmod = Button(main, text="Aceptar", bg='#65B8A6', command=modificarendb)
             botonmod.grid(row=7, column=1, columnspan=2)
+            var_dnic.set('')
         else:
             showerror("Error", "No existe en la base de datos")
     else:
@@ -83,19 +82,11 @@ def modificarendb():
         cursor.execute(sql, datos)
         db.commit()
         mostrardb()
-        var_nombre.set('')
-        var_apellido.set('')
-        var_dni.set('')
-        var_correo.set('')
-        combo.set('')
+        limpiar()
     else:
         showinfo("Salir", "Esta a punto de salir")
     botonmod.destroy()
-    var_nombre.set('')
-    var_apellido.set('')
-    var_dni.set('')
-    var_correo.set('')
-    combo.set('')
+    limpiar()
     
 
 
@@ -108,6 +99,7 @@ def eliminarpersona():
                 cursor.execute(sql)
                 db.commit()
                 mostrardb()
+                var_dnic.set('')
                 showinfo("Eliminar", "Usuario eliminado")
             else:
                 showinfo("Salir", "Esta a punto de salir")
@@ -115,6 +107,13 @@ def eliminarpersona():
             showerror("Error", "No existe en la base de datos")
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
+
+def limpiar():
+    var_nombre.set('')
+    var_apellido.set('')
+    var_dni.set('')
+    var_correo.set('')
+    combo.set('')
 
 
 # VARIABLES
@@ -124,7 +123,7 @@ var_dni = StringVar()
 var_correo = StringVar()
 var_dnic = StringVar()
 # ---------- ALTA DE REGISTRO ---------------------------
-registrasetitulo = Label(main, text="Registrarse", bg='#ced4db', font=fuentetit).grid(pady=10,row=1, column=1, columnspan=2)
+registrasetitulo = Label(main, text="Registrarse", bg='#F0F7DA', font=fuentetit).grid(pady=10,row=1, column=1, columnspan=2)
 nombre = Label(main, text="Nombre", bg='#F0F7DA', font=fuentecue).grid(column=1, row=2)
 nombreentry = Entry(main, textvariable=var_nombre).grid(column=2, row=2)
 
@@ -140,7 +139,7 @@ correoentry = Entry(main,textvariable=var_correo).grid(column=2, row=5)
 filiacion = Label(main, text="Filiacion",bg='#F0F7DA', font=fuentecue).grid(column=1, row=6, pady=3)
 #filiacionentry = Entry(main,textvariable=var_filiacion).grid(column=1, row=6)
 
-boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona).grid(pady=10, row=7, column=1, columnspan=2)
+boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona, font=fuentecue).grid(pady=10, row=7, column=1, columnspan=2)
 
 combo = ttk.Combobox(
     state="readonly",
@@ -149,13 +148,13 @@ combo = ttk.Combobox(
 combo.grid(column=2,row=6)
 
 # INPUT MODIFICACION/CONSULTA
-consultatitulo = Label(main, text="Consulta", bg='#ced4db', font=fuentetit).grid(pady=10, row=1, column=3, columnspan=2)
+consultatitulo = Label(main, text="Consulta", bg='#F0F7DA', font=fuentetit).grid(pady=10, row=1, column=3, columnspan=2)
 dniconsulta = Label(main, text="Ingrese Documento", bg='#F0F7DA', font=fuentecue).grid(column=3, row=2)
 dniconsultaentry = Entry(main, textvariable=var_dnic).grid(column=4, row=2 )
 
-boton_con = Button(main, text="Consultar", bg='#2d6073', command=conspersona).grid(column=3, row=4, columnspan=2)
-boton_mod = Button(main, text="Modificar", bg='#65B8A6', command=modpersona).grid(row=3, column=3)
-boton_eli = Button(main, text="Eliminar", bg='#ced4db', command=eliminarpersona).grid(row=3, column=4)
+boton_con = Button(main, text="Consultar", bg='#8BE83F', command=conspersona, font=fuentecue).grid(column=3, row=4, columnspan=2)
+boton_mod = Button(main, text="Modificar", bg='#66E8CA', command=modpersona, font=fuentecue).grid(row=3, column=3)
+boton_eli = Button(main, text="Eliminar", bg='#FF542B', command=eliminarpersona, font=fuentecue).grid(row=3, column=4)
 # MUESTRA DE BASE
 
 tree = ttk.Treeview(main, show="headings")
