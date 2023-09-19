@@ -22,19 +22,25 @@ db.commit()
 def regpersona():
     patron = "^[A-Za-z]+(?i:[ _-][A-Za-z]+)*$"
     patroncorreo = "^[A-Za-z]+@"
-    resultadodni = busquedadni(var_dni.get())
-    if (re.match(patron, var_nombre.get()) and re.match(patrondni, var_dni.get()) and re.match(patron, var_apellido.get()) and re.match(patroncorreo, var_correo.get())):
-        if (resultadodni ==[]):
-            sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
-            datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
-            cursor.execute(sql, datos)
-            db.commit()
-            mostrardb()
-            limpiar()
+    if (re.match(patrondni, var_dni.get())):
+        if (re.match(patroncorreo, var_correo.get())):
+            if (re.match(patron, var_nombre.get()) and re.match(patron, var_apellido.get())):
+                resultadodni = busquedadni(var_dni.get())
+                if (resultadodni ==[]):
+                    sql = "INSERT INTO personas (nombre, apellido, documento, correo, filiacion) VALUES (?,?,?,?,?)"
+                    datos = (var_nombre.get(),var_apellido.get(),var_dni.get(),var_correo.get(),combo.get())
+                    cursor.execute(sql, datos)
+                    db.commit()
+                    mostrardb()
+                    limpiar()
+                else:
+                    showwarning("Error", "El dni ingresado ya existe en la base, ingrese otro")
+            else:
+                showerror("Error", "No es posible guardar")
         else:
-            showwarning("Error", "El dni ingresado ya existe en la base, ingrese otro")
+            showwarning("Error", "Por favor ingrese un correo electronico correcto")
     else:
-        showerror("Error", "No es posible guardar")
+        showwarning("Error", "Por favor ingrese un valor numerico en DNI")
    
 def busquedadni(var):
     sql = "SELECT * FROM personas WHERE documento = " + var
@@ -53,6 +59,7 @@ def conspersona():
     else:
         showwarning("Error", "Por favor ingrese un valor valido")
 
+boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona, font=fuentecue).grid(pady=10, row=7, column=1, columnspan=2)
 
 def modpersona():
     global botonmod
