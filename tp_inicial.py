@@ -55,11 +55,10 @@ def conspersona():
             showinfo("El resultado es:", resultado)
             var_dnic.set('')
         else:
-            showerror("Error", "No existe en la base de datos")
+            showerror("Error", "El dni ingesado no existe en la base de datos")
     else:
         showwarning("Error", "Por favor ingrese un valor valido")
 
-boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona, font=fuentecue).grid(pady=10, row=7, column=1, columnspan=2)
 
 def modpersona():
     global botonmod
@@ -74,11 +73,10 @@ def modpersona():
             var_dni.set(persona[3])
             var_correo.set(persona[4])
             combo.set(persona[5])
-            botonmod = Button(main, text="Aceptar", bg='#65B8A6', command=modificarendb)
+            botonmod = Button(main, text=" Modificar ", bg='#C1FD53',font=fuentecue, command=modificarendb)
             botonmod.grid(row=7, column=1, columnspan=2)
-            var_dnic.set('')
         else:
-            showerror("Error", "No existe en la base de datos")
+            showerror("Error", "El dni ingesado no existe en la base de datos")
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
@@ -90,6 +88,7 @@ def modificarendb():
         db.commit()
         mostrardb()
         limpiar()
+        var_dnic.set('')
     else:
         showinfo("Salir", "Esta a punto de salir")
     botonmod.destroy()
@@ -111,7 +110,7 @@ def eliminarpersona():
             else:
                 showinfo("Salir", "Esta a punto de salir")
         else:
-            showerror("Error", "No existe en la base de datos")
+            showerror("Error", "El dni ingesado no existe en la base de datos")
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
