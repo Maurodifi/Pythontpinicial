@@ -4,7 +4,7 @@ from tkinter import ttk
 import sqlite3
 import re
 
-mi_id = 0
+# Declaramos el main de la app y seteamos la app
 main = Tk()
 main.title("System UTNBA")
 main.configure(bg='#F0F7DA')
@@ -13,11 +13,16 @@ fuentetit = 'Mooli 12'
 fuentecue = 'Roboto-Medium 10'
 patrondni = "^[0-9]+(?i:[ _-][0-9]+)*$"
 
-db = sqlite3.connect("baseTPinicial.db")
-cursor = db.cursor()
-sql = "CREATE TABLE IF NOT EXISTS personas(id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR(50) NOT NULL, apellido VARCHAR(50) NOT NULL, documento INT NOT NULL, correo VARCHAR(50) NOT NULL, filiacion VARCHAR(50))"
-cursor.execute(sql)
-db.commit()
+# Comenzamos a definir todas las funciones que usara la aplicacion
+def creartabla():
+    global cursor
+    global db
+    db = sqlite3.connect("baseTPinicial.db")
+    cursor = db.cursor()
+    sql = "CREATE TABLE IF NOT EXISTS personas(id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR(50) NOT NULL, apellido VARCHAR(50) NOT NULL, documento INT NOT NULL, correo VARCHAR(50) NOT NULL, filiacion VARCHAR(50))"
+    cursor.execute(sql)
+    db.commit()
+
 
 def regpersona():
     patron = "^[A-Za-z]+(?i:[ _-][A-Za-z]+)*$"
@@ -41,12 +46,14 @@ def regpersona():
             showwarning("Error", "Por favor ingrese un correo electronico correcto")
     else:
         showwarning("Error", "Por favor ingrese un valor numerico en DNI")
-   
+
+
 def busquedadni(var):
     sql = "SELECT * FROM personas WHERE documento = " + var
     cursor.execute(sql)
     resultado = cursor.fetchall()
     return resultado
+
 
 def conspersona():
     if (re.match(patrondni, var_dnic.get())):
@@ -80,6 +87,7 @@ def modpersona():
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
+
 def modificarendb():
     if askyesno("Modificar persona", "¿Esta seguro que desea modificar esta persona?"):
         sql = "UPDATE personas SET nombre=?, apellido=?, documento=?, correo=?, filiacion=? WHERE documento = " + var_dnic.get()
@@ -93,7 +101,6 @@ def modificarendb():
         showinfo("Salir", "Esta a punto de salir")
     botonmod.destroy()
     limpiar()
-    
 
 
 def eliminarpersona():
@@ -114,12 +121,24 @@ def eliminarpersona():
     else:
         showwarning("Error", "Por favor ingrese un valor numerico")
 
+
 def limpiar():
     var_nombre.set('')
     var_apellido.set('')
     var_dni.set('')
     var_correo.set('')
     combo.set('')
+
+
+def mostrardb():
+    sql = "SELECT * FROM personas"
+    cursor.execute(sql)
+    resultado = cursor.fetchall()
+    registros = tree.get_children()
+    for x in registros:
+        tree.delete(x)
+    for i in resultado:
+        tree.insert("", 'end', values=i)
 
 
 # VARIABLES
@@ -143,7 +162,6 @@ correo = Label(main, text="Correo", bg='#F0F7DA', font=fuentecue).grid(column=1,
 correoentry = Entry(main,textvariable=var_correo).grid(column=2, row=5)
 
 filiacion = Label(main, text="Filiacion",bg='#F0F7DA', font=fuentecue).grid(column=1, row=6, pady=3)
-#filiacionentry = Entry(main,textvariable=var_filiacion).grid(column=1, row=6)
 
 boton_reg = Button(main, text="Registrar", bg='#65B8A6', command=regpersona, font=fuentecue).grid(pady=10, row=7, column=1, columnspan=2)
 
@@ -161,16 +179,19 @@ dniconsultaentry = Entry(main, textvariable=var_dnic).grid(column=4, row=2 )
 boton_con = Button(main, text="Consultar", bg='#8BE83F', command=conspersona, font=fuentecue).grid(column=3, row=4, columnspan=2)
 boton_mod = Button(main, text="Modificar", bg='#66E8CA', command=modpersona, font=fuentecue).grid(row=3, column=3)
 boton_eli = Button(main, text="Eliminar", bg='#FF542B', command=eliminarpersona, font=fuentecue).grid(row=3, column=4)
-# MUESTRA DE BASE
 
+
+
+# MUESTRA DE BASE
 tree = ttk.Treeview(main, show="headings")
 tree["columns"] = ("1", "2", "3", "4", "5", "6")
-tree.column("1", minwidth=40, anchor="n")  # no tiene encabezado porque ya existe
+tree.column("1", minwidth=40, anchor="n")
 tree.column("2", minwidth=80, anchor="n")
 tree.column("3", minwidth=80, anchor="n")
 tree.column("4", minwidth=60, anchor="n")
 tree.column("5", minwidth=60, anchor="n")
 tree.column("6", minwidth=60, anchor="n")
+
 
 # Encabezado de las columnas del Treeview
 tree.heading("1", text="ID", anchor="n")
@@ -179,18 +200,11 @@ tree.heading("3", text="Apellido", anchor="n")
 tree.heading("4", text="Dni", anchor="n")
 tree.heading("5", text="Correo", anchor="n")
 tree.heading("6", text="Filiacion", anchor="n")
-
-def mostrardb():
-    sql = "SELECT * FROM personas"
-    cursor.execute(sql)
-    resultado = cursor.fetchall()
-    registros= tree.get_children()
-    for x in registros:
-        tree.delete(x)
-    for i in resultado:
-        tree.insert("", 'end', values=i)
-
 tree.grid(row=9, columnspan=6, pady=5)
-mostrardb()
 
+
+
+
+creartabla()
+mostrardb()
 main.mainloop()
